@@ -42,9 +42,9 @@ export function createElement(type, attribute, ...children) {
     let e;
 
     if (typeof type === 'string') {
-        e = new ElementWrapper(type);
+        e = new ElementWrapper(type); // HTML 实体
     } else {
-        e = new type;
+        e = new type; // 自定义component
     }
 
     // attribute 是对象
@@ -55,7 +55,6 @@ export function createElement(type, attribute, ...children) {
     }
 
     // children 是数组
-
     const insertChildren = (children) => {
         for (let child of children) {
             if (typeof child === 'string') {
