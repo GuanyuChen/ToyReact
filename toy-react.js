@@ -9,7 +9,11 @@ class ElementWrapper {
         if (name.match(/^on([\s\S]+)$/)) { // 小技巧 [\s\S] 表示所有字符
             this.root.addEventListener(RegExp.$1.toLowerCase(), value) // 事件绑定
         } else {
-            this.root.setAttribute(name, value);
+            if (name === 'className') {
+                this.root.setAttribute('class', value)
+            } else {
+                this.root.setAttribute(name, value);
+            }
         }
     }
 
@@ -55,8 +59,23 @@ export class Component {
         this.render()[RENDER_TO_DOM](range);
     }
     rerender() {
-        this._range.deleteContents();
-        this[RENDER_TO_DOM](this._range);
+        // range bug
+        // range 被清空时，如果有相邻的range会被吞进相邻的range里
+        // 此时需要保证 range 不空
+        // 先插入 再删除
+
+        // 保存老的range
+        const oldRange = this._range;
+
+        // 创建一个新的range 放在 oldRange 起始的范围 完成插入
+        const insertRange = document.createRange();
+        insertRange.setStart(oldRange.startContainer, oldRange.startOffset);
+        insertRange.setEnd(oldRange.startContainer, oldRange.startOffset);
+        this[RENDER_TO_DOM](insertRange);
+
+        // 重设oldRange起始范围 设置为插入的内容之后 清空 oldRange
+        oldRange.setStart(insertRange.endContainer, insertRange.endOffset);
+        oldRange.deleteContents();
     }
     setState(newState) {
 
@@ -102,6 +121,10 @@ export function createElement(type, attribute, ...children) {
         for (let child of children) {
             if (typeof child === 'string') {
                 child = new TextWrapper(child)
+            }
+
+            if (child === null) {
+                continue;
             }
 
             if (typeof child === 'object' && child instanceof Array) {
