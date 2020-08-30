@@ -179,3 +179,9 @@ export function render(component, container) {
 ```
 
 ## 基于 range 的 DOM 渲染
+
+## vdom
+
+* 将`document.createElement`、`document.createText`调用挪到`[RENDER_TO_DOM]`方法里
+* `attribute`的赋值也在`[RENDER_TO_DOM]`方法中
+* `ElementWrapper`、`TextWrapper`都是`Component`的子类
