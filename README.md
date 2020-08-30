@@ -177,3 +177,5 @@ export function render(component, container) {
     container.appendChild(component.root);
 }
 ```
+
+## 基于 range 的 DOM 渲染

@@ -6,7 +6,11 @@ class ElementWrapper {
     }
 
     setAttribute(name, value) {
-        this.root.setAttribute(name, value);
+        if (name.match(/^on([\s\S]+)$/)) { // 小技巧 [\s\S] 表示所有字符
+            this.root.addEventListener(RegExp.$1.toLowerCase(), value) // 事件绑定
+        } else {
+            this.root.setAttribute(name, value);
+        }
     }
 
     appendChild(component) {
@@ -38,6 +42,7 @@ export class Component {
         this.props = Object.create(null); // 空对象
         this.children = [];
         this._root = null;
+        this._range = null;
     }
     setAttribute(name, value) {
         this.props[name] = value;
@@ -46,7 +51,33 @@ export class Component {
         this.children.push(component);
     }
     [RENDER_TO_DOM](range) { // 位置相关
+        this._range = range;
         this.render()[RENDER_TO_DOM](range);
+    }
+    rerender() {
+        this._range.deleteContents();
+        this[RENDER_TO_DOM](this._range);
+    }
+    setState(newState) {
+
+        if (this.state === null || typeof this.state !== 'object') { // 无原始state
+            this.state = newState;
+            this.rerender();
+            return;
+        }
+
+        const merge = (oldState, newState) => { // 深拷贝merge
+            for (const key in newState) {
+                if (oldState[key] === null || typeof oldState[key] !== 'object') {
+                    oldState[key] = newState[key];
+                } else {
+                    merge(oldState[key], newState[key])
+                }
+            }
+        }
+
+        merge(this.state, newState);
+        this.rerender();
     }
 }
 
